@@ -8,6 +8,13 @@
 using namespace cv;
 using namespace std;
 
+int x = 0, y = 0;
+
+void mouse_cb(int event, int p, int q, int flags, void *userdata) {
+    x = p;
+    y = q;
+}
+
 bool ugly_borders(Mat &dst) {
     Mat thresh, dst_greyframe;
     vector<Mat> contours;
@@ -22,10 +29,7 @@ bool ugly_borders(Mat &dst) {
 
 int main(int argc, char **argv)
 {
-    const string about =
-        "This sample demonstrates Lucas-Kanade Optical Flow calculation.\n"
-        "The example file can be downloaded from:\n"
-        "  https://www.bogotobogo.com/python/OpenCV_Python/images/mean_shift_tracking/slow_traffic_small.mp4";
+    const string about = "";
     const string keys =
         "{ h help |      | print this help message }"
         "{ @image | vtest.avi | path to image file }"
@@ -72,7 +76,6 @@ int main(int argc, char **argv)
     //goodFeaturesToTrack(old_gray, p0, 1, 0.5, 70, Mat(), 7, false, 0.04);
 
     //cout << p0.front().x << ", " << p0.front().y << "\n";
-    p0.insert(p0.begin(), Point2f(old_frame.size().width * 0.45, old_frame.size().height * 0.25));
 
     // Create a mask image for drawing purposes
     Mat mask = Mat::zeros(old_frame.size(), old_frame.type());
@@ -92,6 +95,14 @@ int main(int argc, char **argv)
         capture >> frame;
         if (frame.empty())
             break;
+        if (i == 1) {
+            imshow("win1", frame);
+            setMouseCallback("win1", mouse_cb);
+            waitKey(0);
+            destroyWindow("win1");
+            cout << x << ", " << y << "\n";
+            p0.insert(p0.begin(), Point2f(x, y));
+        }
         cvtColor(frame, frame_gray, COLOR_BGR2GRAY);
 
         // calculate optical flow
@@ -115,20 +126,6 @@ int main(int argc, char **argv)
         Mat img;
         add(frame, mask, img);
         Mat dst;
-
-        //scaleFactor += distance_from_center.x / 10000;
-        //cout << scaleFactor << "\n";
-        // 2x3 matrix with last row being our translation
-        //Mat transform_mtrx(2, 3, CV_64F);
-
-        /*
-        1  0  10
-        0  1  10
-
-        in the transformation matrix above, 10, 10 will be our translation
-
-        but for some reason I had to write the array as follows lol
-        */
         Point2f trsfm_vals[3]; // array vals denote 3 columns
         do {
             distance_from_center.x = p1[0].x - (img.size().width / 2) / scaleFactor;
@@ -140,25 +137,11 @@ int main(int argc, char **argv)
             trsfm_vals[2] = Point2f(scaleFactor, -distance_from_center.y);
             Mat transform_mtrx(2, 3, CV_32F, trsfm_vals);
             warpAffine(img, dst, transform_mtrx, dst.size(), 1, BORDER_CONSTANT, 0);
-            // break if dst does not have 0xF.
-            //cout << dst;
-            //checkRange(dst, false, 0, 0, 256);
         } while(ugly_borders(dst));
         //imshow("Frame", dst);
         scaleFactor = 1;
-        //cout << ugly_borders(dst) << "\n";
         vw << dst;
-        /*
-        int keyboard = waitKey(capture.get(CAP_PROP_FPS));
-        if (keyboard == 'q' || keyboard == 27)
-            break;
-        */
-        //if (i == 30) {
-        //    break;
-        //}
-        // Now update the previous frame and previous points
         old_gray = frame_gray.clone();
-        //cout << "GOOD NEW: " << good_new << "\n";
         p0 = good_new;
     }
     cout << "Released\n";
