@@ -2,6 +2,7 @@ Uses Lucas-Kanade [Optical Flow](https://www.youtube.com/watch?v=5AUypv5BNbI) me
 Also auto-scales the frames to remove black borders.
 
 ![demo](https://github.com/mo3rfan/lockOn/blob/main/shuffle.gif)
+![demo2](https://github.com/mo3rfan/lockOn/blob/main/popping.gif)
 
 # Usage
 
